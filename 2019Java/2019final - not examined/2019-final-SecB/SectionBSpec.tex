@@ -1,0 +1,248 @@
+\documentclass[a4wide,11pt]{article}
+
+\usepackage{alltt}
+\usepackage{amsmath}
+\usepackage{color}
+\usepackage{comment}
+\usepackage{graphicx}
+\usepackage{lscape}
+\usepackage{multicol}
+\usepackage{parskip}
+\usepackage{url}
+\usepackage{verbatim}
+\usepackage{wrapfig}
+\usepackage{tabularx}
+\usepackage{float}
+
+\usepackage[a4paper]{geometry}
+\geometry{top=1.0in, bottom=1.0in, left=1.0in, right=1.0in}
+
+\renewcommand{\j}[1]{\texttt{#1}}
+
+\newcommand{\sumop}{\mathsf{sum}}
+\newcommand{\prodop}{\mathsf{prod}}
+
+\newcommand{\ADComment}[1]{\textcolor{red}{AD: #1}}
+\newcommand{\AFComment}[1]{\textcolor{red}{AF: #1}}
+
+\begin{document}
+
+\section*{Section B}
+
+
+\subsection*{Problem Description: a thread-safe ECO-Logic}
+
+In this section you will create a virtual market place where different agents
+can sell and buy plastic products.
+Every agent is characterized by an action it will repeatedly perform until
+interrupted.
+
+
+There are four types of agents:
+\begin{itemize}
+	\item \j{Chemical plant}: produce \emph{new} raw plastic batches
+	\item \j{Manufacturer}: buy a certain amount of raw plastic batches and
+assemble them into plastic goods to be put on the market
+	\item \j{Consumer}: buy plastic goods, use them, and them trash them
+	\item \j{Recycle center}: collects trashed goods and recycle their plastic
+components producing new \emph{recycled} raw plastic batches, which can be used
+to manufacture new goods
+\end{itemize}
+
+Your goal is to implement the behavior of each such class of agents, the market
+place where all the sell and buy operations happen, and some utility classes.
+
+We will begin with these utility classes and then detail your tasks for 
+implementing the agents and the market place.
+
+As usual, for this part of the test you are required to implement your own
+(thread-safe) data structure, and you cannot therefore use built-in Java
+collections for these tasks.
+
+\section*{Getting Started}
+
+The project containing the skeleton files is located in your Lexis home
+`\AFComment{TODO}' directory at:
+
+\begin{itemize}
+\item \AFComment{TODO} \j{\textasciitilde/TODO/SectionB/}
+\end{itemize}
+
+
+During the test, you will modify \textbf{only} the following files, among those
+provided in the skeleton. You are free to add as many files as you see fit,
+but not to modify provided source files not listed below. You can add tests or
+otherwise modify the test suite.
+
+\begin{itemize}
+	\item \j{utils/\{SafeQueue.java, UnsafeQueue.java\}}: where you will implement
+a thread-safe and a non thread-safe queue data structure
+	\item \j{domain/agents/\{ChemicalPlant, Manufacturer, RecycleCenter\}}: where
+you
+will implement the behavior of the different kinds of agents
+	\item \j{domain/MarketPlaceImpl.java}: where you will implement the basic
+features of the  market place
+	\item \j{Main.java}: which you may implement to help you debug your code (not
+assessed)
+\end{itemize}
+
+Do not change the names or the contents of any other provided source class
+(in the folder \j{src}).
+
+\subsection*{Testing}
+
+You are provided with a set of test cases in the \j{test} directory. The tests
+aim at exercising a variety of behaviors of your implementation and to further
+explain what your code is expected to do. The test suite is not exhaustive:
+even if your solution passes all the tests, your work will be assessed by the
+examiners, who may also use a different test suite to check your code. 
+
+
+\section*{What to do}
+
+\begin{enumerate}
+	\item \textbf{Queues.}
+
+	In the package \j{utils}, you will find two classes implementing the interface
+\j{Queue}. \j{Queue} provides three methods: \j{void push(E)} adds an element
+at the end of the queue, \j{Optional<E> pop()} returns the element at the
+beginning of the queue or an empty optional if the queue is empty, and \j{int
+size()} returns the number of elements in the queue. A queue implements a
+First-In First-Out (FIFO) policy, i.e., the first element pushed in the queue
+will be the first one returned by a pop operation. 
+
+Your tasks are:
+	\begin{itemize}
+		\item implement the class \j{utils.UnsafeQueue}. This class is
+not required to be thread-safe. It should allow to store an arbitrary number of
+elements. You are free to select the internal representation that you see
+better fit. \textbf{[10 marks]}
+		\item implement the class \j{utils.SafeQueue}, which is required to be
+functionally equivalent to \j{utils.UnsafeQueue} (i.e., to implement a queue),
+but this time it has to be thread-safe. A basic coarse-grained implementation
+sequentializing all the accesses is worth up to 7 marks. Any
+correctly implemented finer-grained
+access control, regardless of its performance, can be awarder full marks.
+
+\textbf{[15 marks]}
+	\end{itemize}
+
+\item \textbf{Market place.}
+
+You are required to implement the class \j{domain.goods.MarketPlaceImpl}. This
+class implements three sets of methods (from the interface \j{MarketPlace}.
+\j{sellRawPlastic} and \j{buyRawPlastic} allow a producer of raw plastic
+batches
+(either a chemical plant or a recycle center) to sell them
+through the market. Manufacturers can then buy the available batches, if any.
+The market implements a FIFO policy with priority: \emph{recycled} plastic
+batches have higher priority than \emph{new} plastic batches when the method
+\j{buyRawPlastic} is invoked; among \emph{recycled} raw plastic batches the
+order in which the batches are available for buying is the same as the order in
+which they have been placed on the market for selling. (See also
+\j{MarketPlaceTest} for some examples of expected behavior.) If no batches of
+raw plastic are available, \j{buyRawPlastic} returns an empty optional. From an
+external perspective, the methods \j{sellRawPlastic} and \j{buyRawPlastic}
+behaves as the \j{push} and \j{pop} methods of a priority queue, whose elements
+are sorted first on the base of their priority (recycled comes before new) and
+then FIFO.
+
+The methods \j{sellPlasticGood} and \j{buyPlasticGood} allow a manufacturer to
+sell plastic goods on the market and a consumer to buy them, respectively.
+Plastic goods do not have priority values and are available for buying in the
+same order in which they have been registered fro selling (FIFO).
+
+ The methods
+\j{disposePlasticGood} and \j{collectDisposedGood} allow consumers to dispose
+of their plastic goods and recycle centers to collect disposed goods,
+respectively. Also in this case, disposed goods are available for collection in
+the same order as they have been disposed of.
+
+A market place instance must be thread-safe. Multiple agents may invoke any of
+its
+methods at any time. (If useful, you may reuse (part of) your queues'
+implementation.)
+
+\textbf{[15 marks]}
+
+\clearpage
+
+\item \textbf{Agents.}
+
+The different types of agents are described by corresponding classes in the
+package \\\j{domain.agents}. All the agents extend the abstract class \j{Agent}
+(that you should not modify). \j{Agent} extends \j{Thread} and its \j{run()}
+method repeatedly invokes \j{doAction()}, and waits a random time after
+each such invocations. The loop can be interrupted invoking the method
+\j{interrupt} or if the thread itself is interrupted. The class \j{Agent} also
+provides a method \j{think()} that realize the random waiting time, and gives
+access to its subclasses the protected field \j{marketPlace}. 
+An agent is instantiated specifying the average thinking time (delay between to
+consecutive invocations of \j{doAction()}) and the market place in which the
+agent is expected to operate.
+
+Each subclass of \j{Agent} is required to override the method \j{doAction()} to
+implement the logic of the different types of agents as described below
+(again, you should not modify any class in the \j{goods} package):
+
+\begin{itemize}
+	\item \j{ChemicalPlant}: a chemical plant agent produces at each invocation of
+\j{doAction()} a new \j{RawPlastic} batch and sells it on the market place.
+The constructor of \j{RawPlastic} takes one argument specifying if the batch is
+from new or recycle material. \j{ChemicalPlant} uses only new material. Only
+for this class, the implementation is provided as an example. You are not
+required to modify it.
+	\item \j{Consumer}: a consumer tries to buy a plastic good from the market. If
+such good is available (the optional is not empty), it uses the good for a
+certain time (you can invoke the method \j{think()} to simulate such wait), and
+then disposes it \\ (\j{MarketPlace.disposePlasticGood()}). 
+
+\textbf{[3 marks]}
+
+	\item \j{Manufacturer}: the signature of the constructor of this class
+requires the number of plastic batches needed by the manufacturer to produce
+each plastic good (if such argument is less than 1, an
+\j{InvalidArgumentException} should be thrown).
+At each invocation of its action, a manufacturer will
+repeatedly try to buy a raw plastic batch, until it has collected the number
+required to produce a new plastic good; if the invocation of
+\j{MarketPlace.buyRawPlastic()}
+returns an empty optional, the manufacturer waits some time (\j{think()})
+before
+trying again. When enough raw plastic batches have been collected, the
+manufacturer produces a plastic good (passing the collected raw plastic batches
+as argument to the constructor of \j{PlasticGood}) and sells it on the market.
+
+\textbf{[3 marks]}
+
+\item \j{RecycleCenter}: every time its action is invoked, a recycle center
+tries to collect a disposed good from the market. If such good is available,
+the recycle center iterates over the basic
+materials composing the good (\j{PlasticGood.getBasicMaterials()}) and recycle
+them according to the following rules.
+Each batch of raw plastic with origin \emph{new} is used to produce one batch
+of \emph{recycled} raw plastic. Every two batches of \emph{recycled} plastic
+from disposed goods are used to produce one batch
+of \emph{recycled} raw plastic. The produced batches of \emph{recycled} raw
+plastic are sold on the market. Notice that it is not required that the two
+batches of \emph{recycled} plastic (which are recycled again into one new
+batch) 
+come from
+the same disposed good (and therefore collected during a single invocation of
+the method \j{doAction()}). See also the last test case in 
+\j{RecycleCenterTest} for more details.
+The recycle center only needs to count how many batches
+of disposed material it processed and produce the corresponding number of
+\emph{recycled} raw plastic batches to be sold on the market (by constructing
+new \j{RawPlastic} instances).
+
+\textbf{[4 marks]}
+\end{itemize}
+
+\end{enumerate}
+
+
+
+\textbf{Total for Section B: 50 marks}
+
+\end{document}
